@@ -9,6 +9,9 @@
 /*   Updated: 2024/05/25 16:48:36 by alborghi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+#include <stdio.h>
+
+extern unsigned long long int g_iteration;
 
 void	swap(int *a, int *b)
 {
@@ -34,6 +37,11 @@ void	next_permutation(int arr[], int size)
 	int	i;
 	int	j;
 
+	if (g_iteration % 100000000 == 0)
+	{
+		printf("current iterations: %llu\n", g_iteration);
+	}
+	g_iteration++;
 	i = size - 2;
 	while (i >= 0 && arr[i] >= arr[i + 1])
 		i--;

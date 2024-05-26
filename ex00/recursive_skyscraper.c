@@ -10,18 +10,21 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
+#include <unistd.h>
+
 #define TRUE 1
 #define FALSE 0
 
-int	ft_iterative_factorial(int nb);
+int		ft_iterative_factorial(int nb);
 void	next_permutation(int arr[], int size);
 
 int	check_up(int **mat, int size, int *rule)
 {
 	int	row;
 	int	col;
-	int seen;
-	int height;
+	int	seen;
+	int	height;
 
 	col = 0;
 	while (col < size)
@@ -56,10 +59,10 @@ int	check_up(int **mat, int size, int *rule)
 
 int	check_down(int **mat, int size, int *rule)
 {
-	int row;
+	int	row;
 	int	col;
-	int seen;
-	int height;
+	int	seen;
+	int	height;
 
 	col = 0;
 	while (col < size)
@@ -92,15 +95,15 @@ int	check_down(int **mat, int size, int *rule)
 	return (TRUE);
 }
 
-int	check_left(int **mat, int size, int *rule)
+int	check_left(int **mat, int rows, int size, int *rule)
 {
 	int	row;
 	int	col;
-	int seen;
-	int height;
+	int	seen;
+	int	height;
 
 	row = 0;
-	while (row < size)
+	while (row < rows)
 	{
 		col = 0;
 		seen = 0;
@@ -130,15 +133,15 @@ int	check_left(int **mat, int size, int *rule)
 	return (TRUE);
 }
 
-int	check_right(int **mat, int size, int *rule)
+int	check_right(int **mat, int rows, int size, int *rule)
 {
 	int	row;
 	int	col;
-	int seen;
-	int height;
+	int	seen;
+	int	height;
 
 	row = 0;
-	while (row < size)
+	while (row < rows)
 	{
 		col = size - 1;
 		seen = 0;
@@ -170,14 +173,10 @@ int	check_right(int **mat, int size, int *rule)
 
 int	goal_test(int **mat, int size, int **rule)
 {
-	int	row;
-	int	col;
-
-	row = 0;
 	if (check_up(mat, size, rule[0])
 		&& check_down(mat, size, rule[1])
-		&& check_left(mat, size, rule[2])
-		&& check_right(mat, size, rule[3]))
+		&& check_left(mat, size, size, rule[2])
+		&& check_right(mat, size, size, rule[3]))
 	{
 		return (TRUE);
 	}
@@ -207,26 +206,31 @@ int	check_rows(int **mat, int row, int size, int *rule)
 		}
 		i++;
 	}
+	return (TRUE);
 }
 
-int check_columns(int **mat, int row, int size, int **rule)
+/*
+FIXME: unused
+*/
+int	check_columns(int **mat, int row, int size, int **rule)
 {
-	if (rule[3][row] == 1 && mat[row][0] != size)
+	if (rule[2][row] == 1 && mat[row][0] != size)
 	{
 		return (FALSE);
 	}
-	if (rule[3][row] == size && mat[row][0] != 1)
+	if (rule[2][row] == size && mat[row][0] != 1)
 	{
 		return (FALSE);
 	}
-	if (rule[4][row] == 1 && mat[row][size - 1] != size)
+	if (rule[3][row] == 1 && mat[row][size - 1] != size)
 	{
 		return (FALSE);
 	}
-	if (rule[4][row] == size && mat[row][size - 1] != 1)
+	if (rule[3][row] == size && mat[row][size - 1] != 1)
 	{
 		return (FALSE);
 	}
+	return (TRUE);
 }
 
 int	is_legal(int **mat, int row, int size, int **rule)
@@ -238,13 +242,23 @@ int	is_legal(int **mat, int row, int size, int **rule)
 	i = 0;
 	if (row == 0)
 	{
-		check_rows(mat, row, size, rule[0]);
+		if (!check_rows(mat, row, size, rule[0]))
+		{
+			return (FALSE);
+		}
 	}
 	if (row == size - 1)
 	{
-		check_rows(mat, row, size, rule[1]);
+		if (!check_rows(mat, row, size, rule[1]))
+		{
+			return (FALSE);
+		}
 	}
-	check_columns(mat, row, size, rule);
+	if (!check_left(mat, row, size, rule[2])
+		|| !check_right(mat, row, size, rule[3]))
+	{
+		return (FALSE);
+	}
 	while (i < size)
 	{
 		j = 0;
@@ -255,6 +269,7 @@ int	is_legal(int **mat, int row, int size, int **rule)
 			{
 				if (mat[j][i] == mat[y][i])
 					return (FALSE);
+				y++;
 			}
 			j++;
 		}
@@ -263,29 +278,29 @@ int	is_legal(int **mat, int row, int size, int **rule)
 	return (TRUE);
 }
 
-void	init_row(int *row, int size)
+void	init_row(int ***mat, int row, int size)
 {
 	int	i;
 
 	i = 0;
 	while (i < size)
 	{
-		row[i] = i + 1;
+		(*mat)[row][i] = i + 1;
 		i++;
 	}
 }
 
-int	r_skyscraper(int **mat, int row, int size, int **rule)
+int	r_skyscraper(int ***mat, int row, int size, int **rule)
 {
 	int	i;
 	int	fact;
 
 	i = 0;
 	fact = ft_iterative_factorial(size);
-	init_row(mat[row], size);
+	init_row(mat, row, size);
 	while (i < fact)
 	{
-		if (is_legal(mat, row, size, rule))
+		if (is_legal((*mat), row, size, rule))
 		{
 			if (row != size - 1)
 			{
@@ -294,12 +309,12 @@ int	r_skyscraper(int **mat, int row, int size, int **rule)
 					return (TRUE);
 				}
 			}
-			else if (goal_test(mat, size, rule))
+			else if (goal_test(*mat, size, rule))
 			{
 				return (TRUE);
 			}
 		}
-		next_permutation(mat[row], size);
+		next_permutation((*mat)[row], size);
 		i++;
 	}
 	return (FALSE);
